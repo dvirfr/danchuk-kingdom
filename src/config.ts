@@ -9,8 +9,7 @@ export const firebaseConfig = {
 }
 
 export const ADMIN_EMAIL = 'dvirfr1@gmail.com'
-// TODO: replace with Dana's real Gmail (must match firestore.rules)
-export const DANA_EMAIL = 'DANA_EMAIL@gmail.com'
+export const DANA_EMAIL = 'danakrem91@gmail.com'
 export const FAMILY_EMAILS = [ADMIN_EMAIL, DANA_EMAIL].map((e) => e.toLowerCase())
 
 // Launch moment: 25 Nov 2026, 00:00 Israel time (UTC+2)

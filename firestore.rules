@@ -12,7 +12,7 @@ service cloud.firestore {
     }
     function isFamily() {
       return signedInVerified()
-        && request.auth.token.email in ['dvirfr1@gmail.com', 'DANA_EMAIL@gmail.com'];
+        && request.auth.token.email in ['dvirfr1@gmail.com', 'danakrem91@gmail.com'];
     }
 
     // Coupons, chapters, photos, love notes: read by both, edited by Dvir
