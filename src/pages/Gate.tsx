@@ -8,18 +8,18 @@ export function Gate() {
   const { user, signIn, logout } = useAuth()
   const { t } = useLang()
   const [busy, setBusy] = useState(false)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const strangerSignedIn = !!user
 
   async function enter() {
     setBusy(true)
-    setError(false)
+    setError(null)
     try {
       if (strangerSignedIn) await logout()
-      await signIn()
-    } catch {
-      setError(true)
+      setError(await signIn())
+    } catch (e) {
+      setError((e as { code?: string }).code ?? 'unknown')
     } finally {
       setBusy(false)
     }
@@ -63,7 +63,13 @@ export function Gate() {
       >
         {busy ? t('signingIn') : strangerSignedIn ? t('tryAnother') : `✨ ${t('signIn')}`}
       </motion.button>
-      {error && <p className="error">{t('signInError')}</p>}
+      {error && (
+        <p className="error">
+          {error === 'auth/popup-blocked' ? t('popupBlocked') : t('signInError')}
+          <br />
+          <small>({error})</small>
+        </p>
+      )}
     </main>
   )
 }

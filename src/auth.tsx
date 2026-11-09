@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { onAuthStateChanged, signInWithPopup, signInWithRedirect, signOut, type User } from 'firebase/auth'
+import { getRedirectResult, onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth'
 import { auth, googleProvider } from './firebase'
 import { ADMIN_EMAIL, FAMILY_EMAILS } from './config'
 
@@ -8,7 +8,8 @@ type AuthState = {
   loading: boolean
   isFamily: boolean
   isAdmin: boolean
-  signIn: () => Promise<void>
+  /** Resolves to an error code, or null on success / user cancel. */
+  signIn: () => Promise<string | null>
   logout: () => Promise<void>
 }
 
@@ -18,14 +19,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(
-    () =>
-      onAuthStateChanged(auth, (u) => {
-        setUser(u)
-        setLoading(false)
-      }),
-    [],
-  )
+  useEffect(() => {
+    // Surface errors from any earlier redirect attempt (older builds used redirects).
+    getRedirectResult(auth).catch((e) => console.error('[auth] redirect result', e))
+    return onAuthStateChanged(auth, (u) => {
+      setUser(u)
+      setLoading(false)
+    })
+  }, [])
 
   const email = user?.email?.toLowerCase() ?? ''
   const verified = !!user?.emailVerified
@@ -35,17 +36,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     isFamily: verified && FAMILY_EMAILS.includes(email),
     isAdmin: verified && email === ADMIN_EMAIL.toLowerCase(),
+    // Popup only: redirect sign-in breaks on github.io because the auth domain
+    // (firebaseapp.com) is cross-site and modern browsers partition its storage.
     signIn: async () => {
       try {
         await signInWithPopup(auth, googleProvider)
+        return null
       } catch (err: unknown) {
-        const code = (err as { code?: string }).code
-        if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') {
-          await signInWithRedirect(auth, googleProvider)
-          return
-        }
-        if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return
-        throw err
+        const code = (err as { code?: string }).code ?? 'unknown'
+        console.error('[auth] sign-in failed', err)
+        if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return null
+        return code
       }
     },
     logout: () => signOut(auth),

@@ -11,6 +11,10 @@ const strings = {
   signIn: { en: 'Enter with Google', he: 'כניסה עם Google' },
   signingIn: { en: 'Opening the gates…', he: 'פותחים את השערים…' },
   signInError: { en: 'The gate got stuck. Try again?', he: 'השער נתקע. ננסה שוב?' },
+  popupBlocked: {
+    en: 'The browser blocked the Google window. Allow pop-ups for this site and tap again.',
+    he: 'הדפדפן חסם את חלון Google. אפשרו חלונות קופצים לאתר הזה ולחצו שוב.',
+  },
   notInvitedTitle: { en: 'This kingdom is private', he: 'הממלכה הזאת פרטית' },
   notInvitedBody: {
     en: 'You are signed in as {email}, which is not on the royal guest list. The dragons have been notified.',
