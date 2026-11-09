@@ -1,0 +1,34 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedInVerified() {
+      return request.auth != null
+        && request.auth.token.email_verified == true;
+    }
+    function isAdmin() {
+      return signedInVerified()
+        && request.auth.token.email == 'dvirfr1@gmail.com';
+    }
+    function isFamily() {
+      return signedInVerified()
+        && request.auth.token.email in ['dvirfr1@gmail.com', 'DANA_EMAIL@gmail.com'];
+    }
+
+    // Coupons, chapters, photos, love notes: read by both, edited by Dvir
+    match /content/{document=**} {
+      allow read: if isFamily();
+      allow write: if isAdmin();
+    }
+
+    // Unlocks, redemptions, ratings, wheel spins: read and written by both
+    match /state/{document=**} {
+      allow read, write: if isFamily();
+    }
+
+    // Everything else is closed
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
