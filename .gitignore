@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# local demo data (personal content never goes in the repo)
+public/demo/

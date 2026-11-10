@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../auth'
 import { useLang } from '../i18n'
 import { LAUNCH_AT } from '../config'
 import { Castle } from '../components/Castle'
+import { useKingdom } from '../data/KingdomData'
 
 function useCountdown(target: Date) {
   const [now, setNow] = useState(() => Date.now())
@@ -23,7 +25,9 @@ function useCountdown(target: Date) {
 export function Home() {
   const { isAdmin, logout } = useAuth()
   const { t } = useLang()
+  const { launched, previewAll } = useKingdom()
   const c = useCountdown(LAUNCH_AT)
+  const open = launched || isAdmin
 
   return (
     <main className="home">
@@ -33,30 +37,45 @@ export function Home() {
 
       <Castle className="castle small" />
 
-      <div className="card">
-        {c.done ? (
-          <h2>🎉 {t('opened')}</h2>
-        ) : (
-          <>
-            <p className="muted">{t('countdown')}</p>
-            <div className="countdown">
-              <div>
-                <b>{c.days}</b>
-                <span>{t('days')}</span>
-              </div>
-              <div>
-                <b>{c.hours}</b>
-                <span>{t('hours')}</span>
-              </div>
-              <div>
-                <b>{c.minutes}</b>
-                <span>{t('minutes')}</span>
-              </div>
+      {!c.done && (
+        <div className="card">
+          <p className="muted">{t('countdown')}</p>
+          <div className="countdown">
+            <div>
+              <b>{c.days}</b>
+              <span>{t('days')}</span>
             </div>
-          </>
-        )}
-        <p className="muted small-text">{t('comingSoon')}</p>
-      </div>
+            <div>
+              <b>{c.hours}</b>
+              <span>{t('hours')}</span>
+            </div>
+            <div>
+              <b>{c.minutes}</b>
+              <span>{t('minutes')}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {open && (
+        <nav className="home-nav">
+          <Link to="/coupons" className="nav-tile">
+            <span>🎟️</span>
+            {t('couponBook')}
+          </Link>
+          <div className="nav-tile disabled">
+            <span>🗺️</span>
+            {t('comingSoon')}
+          </div>
+          {isAdmin && (
+            <Link to="/admin" className="nav-tile admin-tile">
+              <span>🛠️</span>
+              {t('admin')}
+              {previewAll && <small className="preview-flag">preview</small>}
+            </Link>
+          )}
+        </nav>
+      )}
 
       <button className="btn-link" onClick={logout}>
         {t('signOut')}

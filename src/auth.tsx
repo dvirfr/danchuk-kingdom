@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { getRedirectResult, onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth'
 import { auth, googleProvider } from './firebase'
-import { ADMIN_EMAIL, FAMILY_EMAILS } from './config'
+import { ADMIN_EMAIL, DANA_EMAIL, FAMILY_EMAILS } from './config'
+import { DEMO, DEMO_AS } from './demo'
 
 type AuthState = {
   user: User | null
@@ -20,6 +21,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (DEMO) {
+      const email = DEMO_AS === 'dana' ? DANA_EMAIL : ADMIN_EMAIL
+      setUser({ email, emailVerified: true } as User)
+      setLoading(false)
+      return
+    }
     // Surface errors from any earlier redirect attempt (older builds used redirects).
     getRedirectResult(auth).catch((e) => console.error('[auth] redirect result', e))
     return onAuthStateChanged(auth, (u) => {
