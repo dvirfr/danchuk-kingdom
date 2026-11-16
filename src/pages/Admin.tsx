@@ -4,6 +4,7 @@ import { useKingdom } from '../data/KingdomData'
 import { parseCsv } from '../lib/csv'
 import { rowToCoupon } from '../data/coupons'
 import type { Coupon } from '../types'
+import { ChapterAdmin, PhotoAdmin } from './AdminContent'
 
 // Admin tools are for Dvir only and stay in English on purpose.
 export function Admin() {
@@ -106,6 +107,9 @@ export function Admin() {
           </div>
         )}
       </section>
+
+      <PhotoAdmin />
+      <ChapterAdmin />
 
       <section className="card left">
         <h2>Preview</h2>

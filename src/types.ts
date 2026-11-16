@@ -36,3 +36,36 @@ export type CouponState = {
 export type Progress = {
   completedChapters: number[]
 }
+
+export type GameType = 'memory' | 'quiz' | 'scratch' | 'jigsaw' | 'slide' | 'final'
+
+/** Lightweight photo record (with a small thumbnail) — safe to load in bulk. */
+export type PhotoMeta = {
+  id: string
+  chapter: number
+  createdAt: number
+  w: number
+  h: number
+  thumb: string
+  caption?: string
+  /** Chapter-2 quiz: question + correct answer + two wrong answers (any language). */
+  quizQ?: string
+  quizA?: string
+  quizW1?: string
+  quizW2?: string
+}
+
+/** Full-size image, loaded only when a game needs it. */
+export type PhotoData = { id: string; src: string }
+
+export type ChapterContent = {
+  n: number
+  title_en: string
+  title_he: string
+  story_en: string
+  story_he: string
+  note_en: string
+  note_he: string
+  /** ms timestamp when this chapter opens */
+  opensAt: number
+}

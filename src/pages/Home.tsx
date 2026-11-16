@@ -63,10 +63,10 @@ export function Home() {
             <span>🎟️</span>
             {t('couponBook')}
           </Link>
-          <div className="nav-tile disabled">
+          <Link to="/map" className="nav-tile">
             <span>🗺️</span>
-            {t('comingSoon')}
-          </div>
+            {t('mapTitle')}
+          </Link>
           {isAdmin && (
             <Link to="/admin" className="nav-tile admin-tile">
               <span>🛠️</span>

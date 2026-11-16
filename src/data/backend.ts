@@ -1,14 +1,19 @@
 import {
+  arrayUnion,
   collection,
+  deleteDoc,
   doc,
+  getDoc,
   getDocs,
   onSnapshot,
   runTransaction,
+  setDoc,
+  updateDoc,
   writeBatch,
   type Unsubscribe,
 } from 'firebase/firestore'
 import { db } from '../firebase'
-import type { Coupon, CouponState, Progress, Redemption } from '../types'
+import type { ChapterContent, Coupon, CouponState, PhotoMeta, Progress, Redemption } from '../types'
 
 export type Listener<T> = (v: T) => void
 
@@ -21,7 +26,20 @@ export interface Backend {
   rate(couponId: string, redemptionId: string, rating: number, review?: string): Promise<void>
   importCoupons(coupons: Coupon[]): Promise<number>
   resetAllState(): Promise<void>
+
+  subscribePhotos(cb: Listener<PhotoMeta[]>): Unsubscribe
+  /** Full-size image source (data URL or URL). */
+  getPhotoSrc(id: string): Promise<string>
+  addPhoto(meta: PhotoMeta, full: string): Promise<void>
+  updatePhoto(id: string, patch: Partial<PhotoMeta>): Promise<void>
+  deletePhoto(id: string): Promise<void>
+
+  subscribeChapters(cb: Listener<Partial<ChapterContent>[]>): Unsubscribe
+  saveChapter(c: Partial<ChapterContent> & { n: number }): Promise<void>
+  completeChapter(n: number): Promise<void>
 }
+
+export const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
 
 const rid = () => Math.random().toString(36).slice(2, 10)
 
@@ -48,6 +66,9 @@ function patchRedemption(
 const couponsCol = collection(db, 'content', 'coupons', 'items')
 const statesCol = collection(db, 'state', 'coupons', 'items')
 const progressDoc = doc(db, 'state', 'progress')
+const photosCol = collection(db, 'content', 'photos', 'items')
+const photoDataCol = collection(db, 'content', 'photoData', 'items')
+const chaptersCol = collection(db, 'content', 'chapters', 'items')
 
 export const firestoreBackend: Backend = {
   subscribeCoupons: (cb) =>
@@ -108,11 +129,68 @@ export const firestoreBackend: Backend = {
     batch.set(progressDoc, { completedChapters: [] })
     await batch.commit()
   },
+
+  subscribePhotos: (cb) =>
+    onSnapshot(
+      photosCol,
+      (snap) => cb(snap.docs.map((d) => d.data() as PhotoMeta).sort((a, b) => a.createdAt - b.createdAt)),
+      (e) => console.error('[data] photos', e),
+    ),
+
+  getPhotoSrc: async (id) => {
+    const snap = await getDoc(doc(photoDataCol, id))
+    return (snap.data()?.src as string) ?? ''
+  },
+
+  addPhoto: async (meta, full) => {
+    // full image first, so the meta never points at a missing image
+    await setDoc(doc(photoDataCol, meta.id), { id: meta.id, src: full })
+    await setDoc(doc(photosCol, meta.id), meta)
+  },
+
+  updatePhoto: (id, patch) => updateDoc(doc(photosCol, id), patch),
+
+  deletePhoto: async (id) => {
+    await deleteDoc(doc(photosCol, id))
+    await deleteDoc(doc(photoDataCol, id))
+  },
+
+  subscribeChapters: (cb) =>
+    onSnapshot(
+      chaptersCol,
+      (snap) => cb(snap.docs.map((d) => d.data() as Partial<ChapterContent>)),
+      (e) => console.error('[data] chapters', e),
+    ),
+
+  saveChapter: (c) => setDoc(doc(chaptersCol, String(c.n)), c, { merge: true }),
+
+  completeChapter: (n) => setDoc(progressDoc, { completedChapters: arrayUnion(n) }, { merge: true }),
 }
 
 // ---------------------------------------------------------------- Demo (dev only)
-export function createDemoBackend(seedUrl: string): Backend {
+export function createDemoBackend(seedUrl: string, photosManifestUrl?: string): Backend {
   let coupons: Coupon[] = []
+  let photos: PhotoMeta[] = []
+  const photoSrc = new Map<string, string>()
+  let chapters: Partial<ChapterContent>[] = []
+  const subsPh = new Set<Listener<PhotoMeta[]>>()
+  const subsCh = new Set<Listener<Partial<ChapterContent>[]>>()
+  const emitPh = () => subsPh.forEach((f) => f(photos))
+  const emitCh = () => subsCh.forEach((f) => f(chapters))
+  if (photosManifestUrl) {
+    const base = photosManifestUrl.replace(/[^/]+$/, '')
+    fetch(photosManifestUrl)
+      .then((r) => r.json())
+      .then((rows: { file: string; chapter: number; w: number; h: number }[]) => {
+        photos = rows.map((r, i) => {
+          const src = base + 'photos/' + r.file
+          photoSrc.set(r.file, src)
+          return { id: r.file, chapter: r.chapter, createdAt: i, w: r.w, h: r.h, thumb: src }
+        })
+        emitPh()
+      })
+      .catch((e) => console.warn('[demo] no photos', e))
+  }
   let states: Record<string, CouponState> = {}
   let progress: Progress = { completedChapters: [] }
   const subs = { c: new Set<Listener<Coupon[]>>(), s: new Set<Listener<typeof states>>(), p: new Set<Listener<Progress>>() }
@@ -163,6 +241,30 @@ export function createDemoBackend(seedUrl: string): Backend {
     resetAllState: async () => {
       states = {}
       progress = { completedChapters: [] }
+      emit()
+    },
+    subscribePhotos: (cb) => sub(subsPh, cb, () => photos),
+    getPhotoSrc: async (id) => photoSrc.get(id) ?? '',
+    addPhoto: async (meta, full) => {
+      photoSrc.set(meta.id, full)
+      photos = [...photos, meta]
+      emitPh()
+    },
+    updatePhoto: async (id, patch) => {
+      photos = photos.map((p) => (p.id === id ? { ...p, ...patch } : p))
+      emitPh()
+    },
+    deletePhoto: async (id) => {
+      photos = photos.filter((p) => p.id !== id)
+      emitPh()
+    },
+    subscribeChapters: (cb) => sub(subsCh, cb, () => chapters),
+    saveChapter: async (c) => {
+      chapters = [...chapters.filter((x) => x.n !== c.n), { ...(chapters.find((x) => x.n === c.n) ?? {}), ...c }]
+      emitCh()
+    },
+    completeChapter: async (n) => {
+      if (!progress.completedChapters.includes(n)) progress = { completedChapters: [...progress.completedChapters, n] }
       emit()
     },
   }

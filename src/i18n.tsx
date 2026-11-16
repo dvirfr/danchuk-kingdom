@@ -36,6 +36,43 @@ const strings = {
   guideSoon: { en: 'Something magical is being prepared for you, Danchuk… ✨', he: 'משהו קסום מתבשל בשבילך, דנצ׳וק... ✨' },
   guideOpen: { en: 'Welcome to your kingdom, my princess! Where shall we go today?', he: 'ברוכה הבאה לממלכה שלך, הנסיכה שלי! לאן נלך היום?' },
 
+  // map + chapters
+  mapTitle: { en: 'The Kingdom Map', he: 'מפת הממלכה' },
+  mapGuide: { en: 'Choose your next adventure, Danchuk!', he: 'בחרי את ההרפתקה הבאה, דנצ׳וק!' },
+  giftChest: { en: 'Birthday treasure', he: 'אוצר יום ההולדת' },
+  chapterN: { en: 'Chapter {n}', he: 'פרק {n}' },
+  opensOn: { en: 'Opens {date}', he: 'נפתח ב-{date}' },
+  finishPrev: { en: 'Finish chapter {n} first', he: 'קודם מסיימים את פרק {n}' },
+  done: { en: 'Completed', he: 'הושלם' },
+  play: { en: 'Play', he: 'לשחק' },
+  startQuest: { en: 'Start the quest ✨', he: 'מתחילים במסע ✨' },
+  playAgain: { en: 'Play again', he: 'לשחק שוב' },
+  questReady: { en: 'Ready for this adventure?', he: 'מוכנה להרפתקה הזאת?' },
+  questWon: { en: 'You did it! The kingdom is proud of you! 🎉', he: 'הצלחת! כל הממלכה גאה בך! 🎉' },
+  loveNote: { en: 'A love note for you', he: 'מכתב אהבה בשבילך' },
+  youUnlocked: { en: 'You unlocked {n} new coupons!', he: 'פתחת {n} קופונים חדשים!' },
+  toCoupons: { en: 'To the coupon book 🎟️', he: 'לספר הקופונים 🎟️' },
+  backToMap: { en: 'Back to the map', he: 'חזרה למפה' },
+  underConstruction: {
+    en: 'The royal workshop is still building this adventure 🛠️',
+    he: 'בית המלאכה המלכותי עוד בונה את ההרפתקה הזאת 🛠️',
+  },
+  skipTest: { en: 'Skip (test only)', he: 'דילוג (לבדיקה בלבד)' },
+
+  // games
+  memoryHint: { en: 'Find all the matching pairs!', he: 'מצאי את כל הזוגות!' },
+  moves: { en: 'Moves: {n}', he: 'מהלכים: {n}' },
+  quizHint: { en: 'Do you remember?', he: 'את זוכרת?' },
+  quizDefaultQ: { en: 'Which chapter of our story is this from?', he: 'מאיזה פרק בסיפור שלנו התמונה הזאת?' },
+  quizWrong: { en: 'Nope! Try again 😜', he: 'לא! נסי שוב 😜' },
+  quizRight: { en: 'Exactly right! 💖', he: 'בדיוק! 💖' },
+  questionOf: { en: 'Question {i} of {n}', he: 'שאלה {i} מתוך {n}' },
+  scratchHint: { en: 'Scratch the gold to reveal a memory', he: 'גרדי את הזהב כדי לגלות זיכרון' },
+  scratchMe: { en: 'Scratch me ✨', he: 'גרדי אותי ✨' },
+  cardOf: { en: 'Card {i} of {n}', he: 'כרטיס {i} מתוך {n}' },
+  next: { en: 'Next', he: 'הבא' },
+  finish: { en: 'Finish', he: 'סיום' },
+
   // navigation
   couponBook: { en: 'Coupon Book', he: 'ספר הקופונים' },
   admin: { en: 'Royal Admin', he: 'ניהול מלכותי' },
