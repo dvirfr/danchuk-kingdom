@@ -32,6 +32,10 @@ const strings = {
   comingSoon: { en: 'The map is being drawn by royal cartographers…', he: 'הקרטוגרפים המלכותיים משרטטים את המפה…' },
   loading: { en: 'Summoning magic…', he: 'מזמנים קסמים…' },
 
+  guideAdmin: { en: "Psst, my prince… she doesn't know yet 🤫", he: 'פססט, הנסיך שלי... היא עוד לא יודעת 🤫' },
+  guideSoon: { en: 'Something magical is being prepared for you, Danchuk… ✨', he: 'משהו קסום מתבשל בשבילך, דנצ׳וק... ✨' },
+  guideOpen: { en: 'Welcome to your kingdom, my princess! Where shall we go today?', he: 'ברוכה הבאה לממלכה שלך, הנסיכה שלי! לאן נלך היום?' },
+
   // navigation
   couponBook: { en: 'Coupon Book', he: 'ספר הקופונים' },
   admin: { en: 'Royal Admin', he: 'ניהול מלכותי' },

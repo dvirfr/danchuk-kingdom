@@ -794,3 +794,103 @@ html[lang='he'] .rarity-badge {
 .stamp {
   top: 22%;
 }
+
+/* ================================================================ guides */
+.guides {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  width: 100%;
+}
+.guides-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0;
+  direction: ltr; /* prince stays on the left in both languages */
+}
+.guides-row .guide.princess {
+  margin-inline-start: -18px;
+}
+.guide {
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.35));
+  overflow: visible;
+}
+.bubble {
+  position: relative;
+  max-width: 300px;
+  background: #fffaf2;
+  color: #3a2050;
+  border-radius: 18px;
+  padding: 0.7rem 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+  margin-bottom: 0.4rem;
+}
+.bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  translate: -50% 0;
+  border: 10px solid transparent;
+  border-top-color: #fffaf2;
+  border-bottom: 0;
+}
+.g-bob {
+  animation: g-bob 3.2s ease-in-out infinite;
+}
+.g-bob-late {
+  animation-delay: -1.6s;
+}
+@keyframes g-bob {
+  50% {
+    transform: translateY(-5px);
+  }
+}
+.g-blink {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: g-blink 4.5s infinite;
+}
+.princess .g-blink {
+  animation-delay: 1.3s;
+}
+@keyframes g-blink {
+  0%,
+  93%,
+  100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.1);
+  }
+}
+.g-wave {
+  animation: g-wave 2.6s ease-in-out infinite;
+}
+@keyframes g-wave {
+  0%,
+  60%,
+  100% {
+    transform: rotate(0deg);
+  }
+  70% {
+    transform: rotate(-14deg);
+  }
+  80% {
+    transform: rotate(8deg);
+  }
+  90% {
+    transform: rotate(-10deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-bob,
+  .g-blink,
+  .g-wave {
+    animation: none;
+  }
+}

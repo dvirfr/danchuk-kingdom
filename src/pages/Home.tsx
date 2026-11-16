@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { useAuth } from '../auth'
 import { useLang } from '../i18n'
 import { LAUNCH_AT } from '../config'
-import { Castle } from '../components/Castle'
+import { Guides } from '../components/Guides'
 import { useKingdom } from '../data/KingdomData'
 
 function useCountdown(target: Date) {
@@ -35,7 +35,7 @@ export function Home() {
         {isAdmin ? t('greetingAdmin') : t('greeting')}
       </motion.h1>
 
-      <Castle className="castle small" />
+      <Guides text={isAdmin ? t('guideAdmin') : launched ? t('guideOpen') : t('guideSoon')} />
 
       {!c.done && (
         <div className="card">
