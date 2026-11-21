@@ -13,7 +13,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore'
 import { db } from '../firebase'
-import type { ChapterContent, Coupon, CouponState, PhotoMeta, Progress, Redemption } from '../types'
+import type { AfterDarkState, ChapterContent, Coupon, CouponState, PhotoMeta, Progress, Redemption, Settings } from '../types'
 
 export type Listener<T> = (v: T) => void
 
@@ -37,6 +37,12 @@ export interface Backend {
   subscribeChapters(cb: Listener<Partial<ChapterContent>[]>): Unsubscribe
   saveChapter(c: Partial<ChapterContent> & { n: number }): Promise<void>
   completeChapter(n: number): Promise<void>
+
+  subscribeAfterDark(cb: Listener<AfterDarkState>): Unsubscribe
+  revealNight(n: number): Promise<void>
+  setWildText(text: string): Promise<void>
+  subscribeSettings(cb: Listener<Settings>): Unsubscribe
+  savePinHash(hash: string): Promise<void>
 }
 
 export const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
@@ -69,6 +75,8 @@ const progressDoc = doc(db, 'state', 'progress')
 const photosCol = collection(db, 'content', 'photos', 'items')
 const photoDataCol = collection(db, 'content', 'photoData', 'items')
 const chaptersCol = collection(db, 'content', 'chapters', 'items')
+const afterDarkDoc = doc(db, 'state', 'afterDark')
+const settingsDoc = doc(db, 'content', 'settings')
 
 export const firestoreBackend: Backend = {
   subscribeCoupons: (cb) =>
@@ -127,6 +135,7 @@ export const firestoreBackend: Backend = {
     const batch = writeBatch(db)
     snap.docs.forEach((d) => batch.delete(d.ref))
     batch.set(progressDoc, { completedChapters: [] })
+    batch.set(afterDarkDoc, { revealed: [] })
     await batch.commit()
   },
 
@@ -165,6 +174,22 @@ export const firestoreBackend: Backend = {
   saveChapter: (c) => setDoc(doc(chaptersCol, String(c.n)), c, { merge: true }),
 
   completeChapter: (n) => setDoc(progressDoc, { completedChapters: arrayUnion(n) }, { merge: true }),
+
+  subscribeAfterDark: (cb) =>
+    onSnapshot(
+      afterDarkDoc,
+      (snap) => cb({ revealed: [], ...((snap.data() as AfterDarkState | undefined) ?? {}) }),
+      (e) => console.error('[data] afterDark', e),
+    ),
+  revealNight: (n) => setDoc(afterDarkDoc, { revealed: arrayUnion(n) }, { merge: true }),
+  setWildText: (text) => setDoc(afterDarkDoc, { wildText: text }, { merge: true }),
+  subscribeSettings: (cb) =>
+    onSnapshot(
+      settingsDoc,
+      (snap) => cb((snap.data() as Settings | undefined) ?? {}),
+      (e) => console.error('[data] settings', e),
+    ),
+  savePinHash: (pinHash) => setDoc(settingsDoc, { pinHash }, { merge: true }),
 }
 
 // ---------------------------------------------------------------- Demo (dev only)
@@ -173,6 +198,11 @@ export function createDemoBackend(seedUrl: string, photosManifestUrl?: string): 
   let photos: PhotoMeta[] = []
   const photoSrc = new Map<string, string>()
   let chapters: Partial<ChapterContent>[] = []
+  let afterDark: AfterDarkState = { revealed: [] }
+  let settings: Settings = {}
+  const subsAd = new Set<Listener<AfterDarkState>>()
+  const subsSt = new Set<Listener<Settings>>()
+  const emitAd = () => subsAd.forEach((f) => f(afterDark))
   const subsPh = new Set<Listener<PhotoMeta[]>>()
   const subsCh = new Set<Listener<Partial<ChapterContent>[]>>()
   const emitPh = () => subsPh.forEach((f) => f(photos))
@@ -241,7 +271,9 @@ export function createDemoBackend(seedUrl: string, photosManifestUrl?: string): 
     resetAllState: async () => {
       states = {}
       progress = { completedChapters: [] }
+      afterDark = { revealed: [] }
       emit()
+      emitAd()
     },
     subscribePhotos: (cb) => sub(subsPh, cb, () => photos),
     getPhotoSrc: async (id) => photoSrc.get(id) ?? '',
@@ -266,6 +298,20 @@ export function createDemoBackend(seedUrl: string, photosManifestUrl?: string): 
     completeChapter: async (n) => {
       if (!progress.completedChapters.includes(n)) progress = { completedChapters: [...progress.completedChapters, n] }
       emit()
+    },
+    subscribeAfterDark: (cb) => sub(subsAd, cb, () => afterDark),
+    revealNight: async (n) => {
+      if (!afterDark.revealed.includes(n)) afterDark = { ...afterDark, revealed: [...afterDark.revealed, n] }
+      emitAd()
+    },
+    setWildText: async (wildText) => {
+      afterDark = { ...afterDark, wildText }
+      emitAd()
+    },
+    subscribeSettings: (cb) => sub(subsSt, cb, () => settings),
+    savePinHash: async (pinHash) => {
+      settings = { ...settings, pinHash }
+      subsSt.forEach((f) => f(settings))
     },
   }
 }

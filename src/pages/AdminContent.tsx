@@ -4,6 +4,7 @@ import { newId } from '../data/backend'
 import { compressPhoto } from '../lib/image'
 import { CHAPTER_ICON } from '../data/chapters'
 import type { ChapterContent, PhotoMeta } from '../types'
+import { DEFAULT_PIN, hashPin } from '../data/afterDark'
 
 // Admin-only tools (English UI on purpose). Photos + chapter texts and dates.
 
@@ -183,5 +184,43 @@ function ChapterForm({ c }: { c: ChapterContent }) {
         </button>
       </div>
     </details>
+  )
+}
+
+export function PinAdmin() {
+  const { backend, settings } = useKingdom()
+  const [pin, setPin] = useState('')
+  const [msg, setMsg] = useState<string | null>(null)
+  const valid = /^\d{4,8}$/.test(pin)
+  return (
+    <section className="card left">
+      <h2>🌙 After Dark</h2>
+      <p className="muted small-text">
+        Secret entrance: on the Kingdom Map, press and hold the small 🌙 in the top corner for about a second.
+        {settings.pinHash ? ' A custom PIN is set.' : ` No custom PIN yet — the default is ${DEFAULT_PIN}.`} The PIN is stored
+        only as a hash.
+      </p>
+      <div className="admin-row">
+        <input
+          inputMode="numeric"
+          placeholder="New PIN (4–8 digits)"
+          value={pin}
+          onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+          style={{ flex: 1 }}
+        />
+        <button
+          className="btn-gold small"
+          disabled={!valid}
+          onClick={async () => {
+            await backend.savePinHash(await hashPin(pin))
+            setPin('')
+            setMsg('PIN saved ✓')
+          }}
+        >
+          Save PIN
+        </button>
+      </div>
+      {msg && <p className="ok small-text">{msg}</p>}
+    </section>
   )
 }

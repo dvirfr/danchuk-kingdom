@@ -10,6 +10,7 @@ import { Coupons } from './pages/Coupons'
 import { Admin } from './pages/Admin'
 import { MapPage } from './pages/MapPage'
 import { ChapterPage } from './pages/ChapterPage'
+import { AfterDark } from './pages/AfterDark'
 
 // Remount per chapter so game/stage state never leaks between chapters.
 function ChapterRoute() {
@@ -36,6 +37,7 @@ function Shell() {
             <Route path="/coupons" element={<Coupons />} />
             <Route path="/map" element={<MapPage />} />
             <Route path="/chapter/:n" element={<ChapterRoute />} />
+            <Route path="/after-dark" element={<AfterDark />} />
             {isAdmin && <Route path="/admin" element={<Admin />} />}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

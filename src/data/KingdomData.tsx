@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { ChapterContent, Coupon, CouponState, PhotoMeta, Progress } from '../types'
+import type { AfterDarkState, ChapterContent, Coupon, CouponState, PhotoMeta, Progress, Settings } from '../types'
 import { mergeChapters } from './chapters'
 import { createDemoBackend, firestoreBackend, type Backend } from './backend'
 import { DEMO } from '../demo'
@@ -19,6 +19,8 @@ type Ctx = {
   loaded: boolean
   photos: PhotoMeta[]
   chapters: ChapterContent[]
+  afterDark: AfterDarkState
+  settings: Settings
   now: number
   launched: boolean
   /** Admin-only: see every coupon unlocked, regardless of date/progress (local to this device). */
@@ -36,6 +38,8 @@ export function KingdomDataProvider({ children }: { children: ReactNode }) {
   const [loaded, setLoaded] = useState(false)
   const [photos, setPhotos] = useState<PhotoMeta[]>([])
   const [storedChapters, setStoredChapters] = useState<Partial<ChapterContent>[]>([])
+  const [afterDark, setAfterDark] = useState<AfterDarkState>({ revealed: [] })
+  const [settings, setSettings] = useState<Settings>({})
   const [now, setNow] = useState(() => Date.now())
   const [previewFlag, setPreviewFlag] = useState(() => {
     try {
@@ -54,6 +58,8 @@ export function KingdomDataProvider({ children }: { children: ReactNode }) {
     const u3 = backend.subscribeProgress(setProgress)
     const u4 = backend.subscribePhotos(setPhotos)
     const u5 = backend.subscribeChapters(setStoredChapters)
+    const u6 = backend.subscribeAfterDark(setAfterDark)
+    const u7 = backend.subscribeSettings(setSettings)
     const tick = setInterval(() => setNow(Date.now()), 30_000)
     return () => {
       u1()
@@ -61,6 +67,8 @@ export function KingdomDataProvider({ children }: { children: ReactNode }) {
       u3()
       u4()
       u5()
+      u6()
+      u7()
       clearInterval(tick)
     }
   }, [])
@@ -74,6 +82,8 @@ export function KingdomDataProvider({ children }: { children: ReactNode }) {
       loaded,
       photos,
       chapters: mergeChapters(storedChapters),
+      afterDark,
+      settings,
       now,
       launched: now >= LAUNCH_AT.getTime(),
       previewAll: isAdmin && previewFlag,
@@ -86,7 +96,7 @@ export function KingdomDataProvider({ children }: { children: ReactNode }) {
         }
       },
     }),
-    [coupons, states, progress, loaded, photos, storedChapters, now, isAdmin, previewFlag],
+    [coupons, states, progress, loaded, photos, storedChapters, afterDark, settings, now, isAdmin, previewFlag],
   )
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>

@@ -73,6 +73,33 @@ const strings = {
   next: { en: 'Next', he: 'הבא' },
   finish: { en: 'Finish', he: 'סיום' },
 
+  // after dark
+  adTitle: { en: 'After Dark', he: 'אחרי החשכה' },
+  adEnterPin: { en: 'Whisper the secret code…', he: 'לחשי את הקוד הסודי…' },
+  adWrongPin: { en: 'Wrong code, my love 😏', he: 'קוד שגוי, אהובה שלי 😏' },
+  adLock: { en: 'Lock', he: 'נעילה' },
+  adTonight: { en: "Tonight's secret card", he: 'הקלף הסודי של הלילה' },
+  adNightN: { en: 'Night {n} of 30', he: 'לילה {n} מתוך 30' },
+  adScratch: { en: 'Scratch to reveal 🔥', he: 'גרדי כדי לגלות 🔥' },
+  adRevealedNew: { en: 'Added to your After Dark coupons 😈', he: 'נוסף לקופונים הלילתיים שלך 😈' },
+  adNextCard: { en: 'Next card: {when}', he: 'הקלף הבא: {when}' },
+  adFirstCard: { en: 'Your first secret card appears on your birthday at 20:00 🌙', he: 'הקלף הסודי הראשון מופיע ביום ההולדת שלך ב-20:00 🌙' },
+  adAllRevealed: { en: 'All 30 nights revealed. You naughty queen 👑', he: 'כל 30 הלילות נחשפו. מלכה שובבה 👑' },
+  adWildTitle: { en: 'The Wildcard 🃏', he: 'הקלף הפתוח 🃏' },
+  adWildBody: {
+    en: 'Write any wish you want. It becomes an official coupon, pre-approved by your husband.',
+    he: 'כתבי כל משאלה שבא לך. היא הופכת לקופון רשמי, שהבעל כבר אישר מראש.',
+  },
+  adWildPlaceholder: { en: 'My wish is…', he: 'המשאלה שלי היא…' },
+  adWildSave: { en: 'Seal my wish 💋', he: 'לחתום על המשאלה 💋' },
+  adDice: { en: 'Dice of Desire', he: 'קוביות התשוקה' },
+  adRoll: { en: 'Roll 🎲', he: 'לגלגל 🎲' },
+  adDiceHint: { en: 'One die picks what, the other picks where. No re-rolls!', he: 'קובייה אחת בוחרת מה, השנייה איפה. בלי גלגול חוזר!' },
+  adMyCoupons: { en: 'My After Dark coupons', he: 'הקופונים הלילתיים שלי' },
+  adNotYet: { en: 'The night kingdom opens on your birthday… 🌙', he: 'ממלכת הלילה נפתחת ביום ההולדת שלך… 🌙' },
+  tonightAt: { en: 'tonight at 20:00', he: 'הלילה ב-20:00' },
+  tomorrowAt: { en: 'tomorrow at 20:00', he: 'מחר ב-20:00' },
+
   // navigation
   couponBook: { en: 'Coupon Book', he: 'ספר הקופונים' },
   admin: { en: 'Royal Admin', he: 'ניהול מלכותי' },

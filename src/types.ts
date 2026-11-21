@@ -69,3 +69,15 @@ export type ChapterContent = {
   /** ms timestamp when this chapter opens */
   opensAt: number
 }
+
+export type AfterDarkState = {
+  /** Night numbers (1..30) whose scratch card has been revealed. */
+  revealed: number[]
+  /** Text she wrote for the Wildcard coupon. */
+  wildText?: string
+}
+
+export type Settings = {
+  /** SHA-256 of the After Dark PIN (salted). */
+  pinHash?: string
+}

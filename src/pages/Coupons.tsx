@@ -9,7 +9,7 @@ import { CouponCard, LockedCard } from '../components/CouponCard'
 import { Modal } from '../components/Modal'
 import { RedeemCeremony } from '../components/RedeemCeremony'
 import { RateModal } from '../components/RateModal'
-import type { Coupon, Redemption } from '../types'
+import type { Coupon, Redemption, Section } from '../types'
 
 type Tab = 'wallet' | 'todo' | 'used'
 
@@ -22,9 +22,9 @@ function useNow(intervalMs = 30_000) {
   return now
 }
 
-export function Coupons() {
+export function Coupons({ section = 'regular', embedded = false }: { section?: Section; embedded?: boolean }) {
   const { t, lang } = useLang()
-  const { backend, coupons, states, progress, launched, previewAll, loaded } = useKingdom()
+  const { backend, coupons, states, progress, launched, previewAll, loaded, afterDark } = useKingdom()
   const [tab, setTab] = useState<Tab>('wallet')
   const [confirm, setConfirm] = useState<Coupon | null>(null)
   const [ceremony, setCeremony] = useState<Coupon | null>(null)
@@ -32,10 +32,24 @@ export function Coupons() {
   const now = useNow()
   const units = { d: t('d'), h: t('h'), m: t('m') }
 
-  const regular = useMemo(() => sortCoupons(coupons.filter((c) => c.section === 'regular')), [coupons])
-  const unlocked = regular.filter((c) => isUnlocked(c, progress, launched, previewAll))
+  const regular = useMemo(
+    () =>
+      sortCoupons(
+        coupons
+          .filter((c) => c.section === section)
+          // the Wildcard shows only once she has written her wish
+          .filter((c) => c.unlock !== 'wildcard' || !!afterDark.wildText)
+          .map((c) =>
+            c.unlock === 'wildcard' && afterDark.wildText
+              ? { ...c, title_en: afterDark.wildText, title_he: afterDark.wildText, desc_en: c.title_en, desc_he: c.title_he }
+              : c,
+          ),
+      ),
+    [coupons, section, afterDark.wildText],
+  )
+  const unlocked = regular.filter((c) => isUnlocked(c, progress, launched, previewAll, afterDark))
   const wallet = unlocked.filter((c) => stateOf(c, states).usesLeft > 0)
-  const locked = regular.filter((c) => !isUnlocked(c, progress, launched, previewAll))
+  const locked = regular.filter((c) => !isUnlocked(c, progress, launched, previewAll, afterDark))
 
   const lockedByChapter = useMemo(() => {
     const m = new Map<number, number>()
@@ -67,13 +81,15 @@ export function Coupons() {
   ]
 
   return (
-    <main className="page">
+    <Wrapper className={embedded ? 'embedded-book' : 'page'}>
+      {!embedded && (
       <header className="page-head">
         <Link to="/" className="back" aria-label={t('back')}>
           {lang === 'he' ? '→' : '←'}
         </Link>
         <h1 className="title small">{t('couponBook')}</h1>
       </header>
+      )}
 
       <nav className="tabs">
         {tabs.map((x) => (
@@ -207,6 +223,10 @@ export function Coupons() {
           setTab('used')
         }}
       />
-    </main>
+    </Wrapper>
   )
+}
+
+function Wrapper({ className, children }: { className: string; children: React.ReactNode }) {
+  return className === 'page' ? <main className={className}>{children}</main> : <div className={className}>{children}</div>
 }

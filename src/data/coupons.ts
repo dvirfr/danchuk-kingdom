@@ -1,4 +1,5 @@
-import type { Coupon, CouponState, Progress, Rarity, Section } from '../types'
+import type { AfterDarkState, Coupon, CouponState, Progress, Rarity, Section } from '../types'
+import { isAfterDarkUnlocked } from './afterDark'
 import { DEFAULT_ICONS, RARITY_FALLBACK_ICON } from './icons'
 
 const RARITIES: Rarity[] = ['common', 'rare', 'epic', 'legendary', 'spicy']
@@ -46,10 +47,16 @@ export function chapterOf(c: Coupon): number | null {
   return m ? Number(m[1]) : null
 }
 
-export function isUnlocked(c: Coupon, progress: Progress, launched: boolean, previewAll: boolean) {
+export function isUnlocked(
+  c: Coupon,
+  progress: Progress,
+  launched: boolean,
+  previewAll: boolean,
+  afterDark: AfterDarkState = { revealed: [] },
+) {
+  if (c.section === 'after_dark') return isAfterDarkUnlocked(c, afterDark, launched, previewAll)
   if (previewAll) return true
   if (!launched) return false
-  if (c.section !== 'regular') return false // After Dark has its own rules (phase 4)
   if (c.unlock === 'gift') return true
   const ch = chapterOf(c)
   return ch !== null && progress.completedChapters.includes(ch)

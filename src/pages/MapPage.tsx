@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useKingdom } from '../data/KingdomData'
@@ -67,6 +68,9 @@ export function MapPage() {
           </span>
         ))}
 
+        {/* the secret entrance: long-press the moon */}
+        <SecretMoon onOpen={() => nav('/after-dark')} />
+
         {/* gift chest */}
         <motion.button
           className="map-node chest open"
@@ -104,5 +108,36 @@ export function MapPage() {
         })}
       </div>
     </main>
+  )
+}
+
+// Looks like scenery. Holding it for ~1.2s opens After Dark.
+function SecretMoon({ onOpen }: { onOpen: () => void }) {
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [holding, setHolding] = useState(false)
+  const start = () => {
+    setHolding(true)
+    timer.current = setTimeout(() => {
+      setHolding(false)
+      navigator.vibrate?.(30)
+      onOpen()
+    }, 1200)
+  }
+  const stop = () => {
+    setHolding(false)
+    if (timer.current) clearTimeout(timer.current)
+  }
+  return (
+    <span
+      className={`secret-moon ${holding ? 'holding' : ''}`}
+      onPointerDown={start}
+      onPointerUp={stop}
+      onPointerLeave={stop}
+      onPointerCancel={stop}
+      onContextMenu={(e) => e.preventDefault()}
+      aria-hidden
+    >
+      🌙
+    </span>
   )
 }

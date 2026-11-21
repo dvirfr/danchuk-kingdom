@@ -7,7 +7,19 @@ import { pickPhotos, type GameProps } from './common'
 const CARDS = 3
 const REVEAL_AT = 0.5
 
-function ScratchCard({ src, label, onRevealed }: { src?: string; label: string; onRevealed: () => void }) {
+export function ScratchCard({
+  src,
+  label,
+  onRevealed,
+  theme = 'gold',
+  children,
+}: {
+  src?: string
+  label: string
+  onRevealed: () => void
+  theme?: 'gold' | 'night'
+  children?: React.ReactNode
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [revealed, setRevealed] = useState(false)
   const drawing = useRef(false)
@@ -24,10 +36,11 @@ function ScratchCard({ src, label, onRevealed }: { src?: string; label: string; 
     ctx.scale(dpr, dpr)
     // gold foil
     const g = ctx.createLinearGradient(0, 0, rect.width, rect.height)
-    g.addColorStop(0, '#f7d774')
-    g.addColorStop(0.35, '#fff0b3')
-    g.addColorStop(0.6, '#e2ab36')
-    g.addColorStop(1, '#f7d774')
+    const stops = theme === 'night' ? ['#5a0f2e', '#a3214f', '#3b0a1e', '#7a1638'] : ['#f7d774', '#fff0b3', '#e2ab36', '#f7d774']
+    g.addColorStop(0, stops[0])
+    g.addColorStop(0.35, stops[1])
+    g.addColorStop(0.6, stops[2])
+    g.addColorStop(1, stops[3])
     ctx.fillStyle = g
     ctx.fillRect(0, 0, rect.width, rect.height)
     ctx.fillStyle = 'rgba(255,255,255,0.35)'
@@ -35,11 +48,11 @@ function ScratchCard({ src, label, onRevealed }: { src?: string; label: string; 
       ctx.font = `${8 + Math.random() * 10}px serif`
       ctx.fillText('✦', Math.random() * rect.width, Math.random() * rect.height)
     }
-    ctx.fillStyle = '#7a4d00'
+    ctx.fillStyle = theme === 'night' ? '#ffd6e2' : '#7a4d00'
     ctx.font = 'bold 22px Quicksand, Varela Round, sans-serif'
     ctx.textAlign = 'center'
     ctx.fillText(label, rect.width / 2, rect.height / 2)
-  }, [label])
+  }, [label, theme])
 
   const pos = (e: React.PointerEvent) => {
     const r = canvasRef.current!.getBoundingClientRect()
@@ -77,8 +90,8 @@ function ScratchCard({ src, label, onRevealed }: { src?: string; label: string; 
   }
 
   return (
-    <div className="scratch-card">
-      {src ? <img src={src} alt="" draggable={false} /> : <span className="spinner" />}
+    <div className={`scratch-card ${theme}`}>
+      {children ?? (src ? <img src={src} alt="" draggable={false} /> : <span className="spinner" />)}
       <motion.canvas
         ref={canvasRef}
         animate={{ opacity: revealed ? 0 : 1 }}
