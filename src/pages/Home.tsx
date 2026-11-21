@@ -7,13 +7,13 @@ import { LAUNCH_AT } from '../config'
 import { Guides } from '../components/Guides'
 import { useKingdom } from '../data/KingdomData'
 
-function useCountdown(target: Date) {
+function useCountdown(target: Date, simAt: number | null) {
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 30_000)
     return () => clearInterval(id)
   }, [])
-  const ms = Math.max(0, target.getTime() - now)
+  const ms = Math.max(0, target.getTime() - (simAt ?? now))
   return {
     done: ms === 0,
     days: Math.floor(ms / 86_400_000),
@@ -25,9 +25,9 @@ function useCountdown(target: Date) {
 export function Home() {
   const { isAdmin, logout } = useAuth()
   const { t } = useLang()
-  const { launched, previewAll } = useKingdom()
-  const c = useCountdown(LAUNCH_AT)
-  const open = launched || isAdmin
+  const { launched, previewAll, simAt } = useKingdom()
+  const c = useCountdown(LAUNCH_AT, simAt)
+  const open = launched || (isAdmin && !simAt)
 
   return (
     <main className="home">

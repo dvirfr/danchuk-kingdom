@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useKingdom } from '../data/KingdomData'
-import { chapterOf, isUnlocked, sortCoupons, stateOf } from '../data/coupons'
+import { isUnlocked, sortCoupons, stateOf } from '../data/coupons'
 import { useLang, type StringKey } from '../i18n'
 import { couponText, formatDate, formatDuration } from '../lib/format'
-import { CouponCard, LockedCard } from '../components/CouponCard'
+import { CouponCard } from '../components/CouponCard'
 import { Modal } from '../components/Modal'
 import { RedeemCeremony } from '../components/RedeemCeremony'
 import { RateModal } from '../components/RateModal'
@@ -49,16 +49,10 @@ export function Coupons({ section = 'regular', embedded = false }: { section?: S
   )
   const unlocked = regular.filter((c) => isUnlocked(c, progress, launched, previewAll, afterDark))
   const wallet = unlocked.filter((c) => stateOf(c, states).usesLeft > 0)
-  const locked = regular.filter((c) => !isUnlocked(c, progress, launched, previewAll, afterDark))
 
-  const lockedByChapter = useMemo(() => {
-    const m = new Map<number, number>()
-    for (const c of locked) {
-      const ch = chapterOf(c)
-      if (ch !== null) m.set(ch, (m.get(ch) ?? 0) + 1)
-    }
-    return [...m.entries()].sort((a, b) => a[0] - b[0])
-  }, [locked])
+  // progress: how many of this section's coupons she has revealed so far
+  const total = coupons.filter((c) => c.section === section).length
+  const revealed = unlocked.length
 
   const all = regular.flatMap((c) => stateOf(c, states).redemptions.map((r) => ({ coupon: c, r })))
   const todo = all.filter((x) => !x.r.deliveredAt).sort((a, b) => (a.r.dueAt ?? Infinity) - (b.r.dueAt ?? Infinity))
@@ -91,6 +85,23 @@ export function Coupons({ section = 'regular', embedded = false }: { section?: S
       </header>
       )}
 
+      {loaded && total > 0 && (
+        <div className="reveal-progress">
+          <div className="rp-label">
+            <b>{t('progressRevealed', { n: revealed, total })}</b>
+            <span className="muted">{revealed >= total ? t('progressAll') : t('progressLeft', { n: total - revealed })}</span>
+          </div>
+          <div className="rp-track" dir="ltr">
+            <motion.div
+              className="rp-fill"
+              initial={{ width: 0 }}
+              animate={{ width: `${(revealed / total) * 100}%` }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+            />
+          </div>
+        </div>
+      )}
+
       <nav className="tabs">
         {tabs.map((x) => (
           <button key={x.id} className={`tab ${tab === x.id ? 'on' : ''}`} onClick={() => setTab(x.id)}>
@@ -117,11 +128,7 @@ export function Coupons({ section = 'regular', embedded = false }: { section?: S
                 {wallet.map((c) => (
                   <CouponCard key={c.id} coupon={c} state={stateOf(c, states)} onRedeem={setConfirm} />
                 ))}
-                {lockedByChapter.map(([ch, n]) => (
-                  <LockedCard key={ch} label={t('lockedChapter', { n: ch })} count={n} />
-                ))}
               </div>
-              {locked.length > 0 && <p className="muted center small-text">{t('lockedCount', { n: locked.length })}</p>}
             </>
           )}
 

@@ -26,6 +26,9 @@ type Ctx = {
   /** Admin-only: see every coupon unlocked, regardless of date/progress (local to this device). */
   previewAll: boolean
   setPreviewAll: (v: boolean) => void
+  /** Admin-only: pretend the clock is at this moment (ms) on this device; null = real time. */
+  simAt: number | null
+  setSimAt: (v: number | null) => void
 }
 
 const DataContext = createContext<Ctx | null>(null)
@@ -40,7 +43,17 @@ export function KingdomDataProvider({ children }: { children: ReactNode }) {
   const [storedChapters, setStoredChapters] = useState<Partial<ChapterContent>[]>([])
   const [afterDark, setAfterDark] = useState<AfterDarkState>({ revealed: [] })
   const [settings, setSettings] = useState<Settings>({})
-  const [now, setNow] = useState(() => Date.now())
+  const [realNow, setNow] = useState(() => Date.now())
+  const [simAtState, setSimAtState] = useState<number | null>(() => {
+    try {
+      const v = Number(localStorage.getItem('simAt'))
+      return v > 0 ? v : null
+    } catch {
+      return null
+    }
+  })
+  const simAt = isAdmin ? simAtState : null
+  const now = simAt ?? realNow
   const [previewFlag, setPreviewFlag] = useState(() => {
     try {
       return localStorage.getItem('previewAll') === '1'
@@ -87,6 +100,16 @@ export function KingdomDataProvider({ children }: { children: ReactNode }) {
       now,
       launched: now >= LAUNCH_AT.getTime(),
       previewAll: isAdmin && previewFlag,
+      simAt,
+      setSimAt: (v) => {
+        setSimAtState(v)
+        try {
+          if (v) localStorage.setItem('simAt', String(v))
+          else localStorage.removeItem('simAt')
+        } catch {
+          /* ignore */
+        }
+      },
       setPreviewAll: (v) => {
         setPreviewFlag(v)
         try {
@@ -96,7 +119,7 @@ export function KingdomDataProvider({ children }: { children: ReactNode }) {
         }
       },
     }),
-    [coupons, states, progress, loaded, photos, storedChapters, afterDark, settings, now, isAdmin, previewFlag],
+    [coupons, states, progress, loaded, photos, storedChapters, afterDark, settings, now, simAt, isAdmin, previewFlag],
   )
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>

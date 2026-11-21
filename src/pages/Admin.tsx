@@ -8,7 +8,7 @@ import { ChapterAdmin, PhotoAdmin, PinAdmin } from './AdminContent'
 
 // Admin tools are for Dvir only and stay in English on purpose.
 export function Admin() {
-  const { backend, coupons, previewAll, setPreviewAll } = useKingdom()
+  const { backend, coupons, previewAll, setPreviewAll, simAt, setSimAt } = useKingdom()
   const [pending, setPending] = useState<Coupon[] | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
@@ -118,6 +118,36 @@ export function Admin() {
           <input type="checkbox" checked={previewAll} onChange={(e) => setPreviewAll(e.target.checked)} />
           Show everything unlocked on this device (only you see this)
         </label>
+        <h3 className="admin-h3">See it exactly as Dana will</h3>
+        <p className="muted small-text">
+          Turn preview off and pick a moment. Your phone pretends it's that time, so you see her real view (locks, unlocked
+          coupons, night cards). Only on your device; turn it off when done.
+        </p>
+        <div className="sim-buttons">
+          {[
+            ['Birthday morning', '2026-11-25T08:00:00+02:00'],
+            ['Birthday 21:00 (1st night card)', '2026-11-25T21:00:00+02:00'],
+            ['3 Dec (chapter 4 open)', '2026-12-03T12:00:00+02:00'],
+            ['17 Dec (all chapters)', '2026-12-17T12:00:00+02:00'],
+          ].map(([label, iso]) => (
+            <button
+              key={label}
+              className={`chip ${simAt === new Date(iso).getTime() ? 'on' : ''}`}
+              onClick={() => {
+                setPreviewAll(false)
+                setSimAt(new Date(iso).getTime())
+              }}
+            >
+              {label}
+            </button>
+          ))}
+          {simAt && (
+            <button className="chip" onClick={() => setSimAt(null)}>
+              ✕ Real time
+            </button>
+          )}
+        </div>
+        {simAt && <p className="small-text ok">Pretending it's {new Date(simAt).toLocaleString('en-GB')}</p>}
       </section>
 
       <section className="card left">
