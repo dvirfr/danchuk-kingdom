@@ -13,7 +13,7 @@ export const CHAPTER_GAME: Record<number, GameType> = {
   6: 'final',
 }
 
-export const CHAPTER_ICON: Record<number, string> = { 1: '🌸', 2: '💞', 3: '💍', 4: '🏡', 5: '🌙', 6: '🏰' }
+export const CHAPTER_ICON: Record<number, string> = { 1: '🌸', 2: '💞', 3: '🏡', 4: '💍', 5: '🌙', 6: '🏰' }
 
 const ph = (en: string, he: string) => ({ en, he })
 const PLACEHOLDER_STORY = ph(
@@ -25,8 +25,8 @@ const PLACEHOLDER_NOTE = ph('A love note from your prince will appear here. 💌
 const titles: Record<number, [string, string]> = {
   1: ['How It All Began', 'איך הכול התחיל'],
   2: ['Falling in Love', 'מתאהבים'],
-  3: ['The Ring & the "Yes"', 'הטבעת וה"כן"'],
-  4: ['A Family with Michelle', 'משפחה עם מישל'],
+  3: ['A Family with Michelle', 'משפחה עם מישל'],
+  4: ['The Ring & the "Yes"', 'הטבעת וה"כן"'],
   5: ['Romy Arrives', 'רומי מגיעה לעולם'],
   6: ['Today & Forever', 'היום ולתמיד'],
 }
