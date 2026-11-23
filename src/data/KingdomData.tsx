@@ -19,6 +19,8 @@ type Ctx = {
   loaded: boolean
   photos: PhotoMeta[]
   chapters: ChapterContent[]
+  /** true once the stored chapter texts have arrived from the database */
+  chaptersLoaded: boolean
   afterDark: AfterDarkState
   settings: Settings
   now: number
@@ -41,6 +43,7 @@ export function KingdomDataProvider({ children }: { children: ReactNode }) {
   const [loaded, setLoaded] = useState(false)
   const [photos, setPhotos] = useState<PhotoMeta[]>([])
   const [storedChapters, setStoredChapters] = useState<Partial<ChapterContent>[]>([])
+  const [chaptersLoaded, setChaptersLoaded] = useState(false)
   const [afterDark, setAfterDark] = useState<AfterDarkState>({ revealed: [] })
   const [settings, setSettings] = useState<Settings>({})
   const [realNow, setNow] = useState(() => Date.now())
@@ -70,7 +73,10 @@ export function KingdomDataProvider({ children }: { children: ReactNode }) {
     const u2 = backend.subscribeStates(setStates)
     const u3 = backend.subscribeProgress(setProgress)
     const u4 = backend.subscribePhotos(setPhotos)
-    const u5 = backend.subscribeChapters(setStoredChapters)
+    const u5 = backend.subscribeChapters((c) => {
+      setStoredChapters(c)
+      setChaptersLoaded(true)
+    })
     const u6 = backend.subscribeAfterDark(setAfterDark)
     const u7 = backend.subscribeSettings(setSettings)
     const tick = setInterval(() => setNow(Date.now()), 30_000)
@@ -95,6 +101,7 @@ export function KingdomDataProvider({ children }: { children: ReactNode }) {
       loaded,
       photos,
       chapters: mergeChapters(storedChapters),
+      chaptersLoaded,
       afterDark,
       settings,
       now,
@@ -119,7 +126,7 @@ export function KingdomDataProvider({ children }: { children: ReactNode }) {
         }
       },
     }),
-    [coupons, states, progress, loaded, photos, storedChapters, afterDark, settings, now, simAt, isAdmin, previewFlag],
+    [coupons, states, progress, loaded, photos, storedChapters, chaptersLoaded, afterDark, settings, now, simAt, isAdmin, previewFlag],
   )
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>

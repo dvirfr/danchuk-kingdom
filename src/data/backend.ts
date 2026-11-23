@@ -197,7 +197,14 @@ export function createDemoBackend(seedUrl: string, photosManifestUrl?: string): 
   let coupons: Coupon[] = []
   let photos: PhotoMeta[] = []
   const photoSrc = new Map<string, string>()
-  let chapters: Partial<ChapterContent>[] = []
+  // demo: persist chapter texts across reloads and deliver them late, like Firestore does
+  let chapters: Partial<ChapterContent>[] = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('demoChapters') || '[]')
+    } catch {
+      return []
+    }
+  })()
   let afterDark: AfterDarkState = { revealed: [] }
   let settings: Settings = {}
   const subsAd = new Set<Listener<AfterDarkState>>()
@@ -290,9 +297,21 @@ export function createDemoBackend(seedUrl: string, photosManifestUrl?: string): 
       photos = photos.filter((p) => p.id !== id)
       emitPh()
     },
-    subscribeChapters: (cb) => sub(subsCh, cb, () => chapters),
+    subscribeChapters: (cb) => {
+      subsCh.add(cb)
+      const id = setTimeout(() => cb(chapters), 600)
+      return () => {
+        clearTimeout(id)
+        subsCh.delete(cb)
+      }
+    },
     saveChapter: async (c) => {
       chapters = [...chapters.filter((x) => x.n !== c.n), { ...(chapters.find((x) => x.n === c.n) ?? {}), ...c }]
+      try {
+        localStorage.setItem('demoChapters', JSON.stringify(chapters))
+      } catch {
+        /* ignore */
+      }
       emitCh()
     },
     completeChapter: async (n) => {

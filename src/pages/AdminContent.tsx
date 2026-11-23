@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useKingdom } from '../data/KingdomData'
 import { newId } from '../data/backend'
 import { compressPhoto } from '../lib/image'
@@ -147,16 +147,46 @@ export function ChapterAdmin() {
 }
 
 function ChapterForm({ c }: { c: ChapterContent }) {
-  const { backend } = useKingdom()
+  const { backend, chaptersLoaded } = useKingdom()
+  // `base` = what's stored now; `f` = what's in the form. Saved text that arrives
+  // from the database after the page opens refreshes the form, unless you're editing.
+  const [base, setBase] = useState(c)
   const [f, setF] = useState(c)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const changedKeys = (Object.keys(f) as (keyof ChapterContent)[]).filter((k) => f[k] !== base[k])
+  const dirty = changedKeys.length > 0
+  const incoming = JSON.stringify(c)
+
+  useEffect(() => {
+    if (!dirty) {
+      setBase(c)
+      setF(c)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [incoming])
+
   const set = (k: keyof ChapterContent) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setF({ ...f, [k]: e.target.value })
 
   const save = async () => {
-    await backend.saveChapter({ ...f, opensAt: Number(f.opensAt) })
-    setSaved(true)
-    setTimeout(() => setSaved(false), 1500)
+    setBusy(true)
+    setError(null)
+    try {
+      // only send what changed, so nothing stale can overwrite other fields
+      const patch: Partial<ChapterContent> & { n: number } = { n: c.n }
+      for (const k of changedKeys) (patch as Record<string, unknown>)[k] = k === 'opensAt' ? Number(f.opensAt) : f[k]
+      await backend.saveChapter(patch)
+      setBase(f)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch (e) {
+      console.error(e)
+      setError(`Not saved: ${(e as { code?: string; message?: string }).code ?? (e as Error).message}`)
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -179,9 +209,10 @@ function ChapterForm({ c }: { c: ChapterContent }) {
             onChange={(e) => setF({ ...f, opensAt: new Date(e.target.value).getTime() })}
           />
         </label>
-        <button className="btn-gold small" onClick={save}>
-          {saved ? 'Saved ✓' : `Save chapter ${c.n}`}
+        <button className="btn-gold small" onClick={save} disabled={!chaptersLoaded || !dirty || busy}>
+          {!chaptersLoaded ? 'Loading…' : busy ? 'Saving…' : saved ? 'Saved ✓' : dirty ? `Save chapter ${c.n}` : 'No changes'}
         </button>
+        {error && <p className="error small-text">{error}</p>}
       </div>
     </details>
   )
